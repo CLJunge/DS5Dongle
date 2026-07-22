@@ -560,10 +560,6 @@ static void __not_in_flash_func(hci_packet_handler)(uint8_t packet_type, uint16_
                     if (hid_control_cid == 0) {
                         l2cap_create_channel(l2cap_packet_handler, current_device_addr, PSM_HID_CONTROL, MTU_CONTROL,
                                              &hid_control_cid);
-                    } else if (hid_interrupt_cid == 0) {
-                        l2cap_create_channel(l2cap_packet_handler, current_device_addr, PSM_HID_INTERRUPT,
-                                             MTU_INTERRUPT,
-                                             &hid_interrupt_cid);
                     }
                 }
             }
@@ -574,6 +570,7 @@ static void __not_in_flash_func(hci_packet_handler)(uint8_t packet_type, uint16_
             bd_addr_t addr;
             hci_event_connection_request_get_bd_addr(packet, addr);
             const uint32_t cod = hci_event_connection_request_get_class_of_device(packet);
+            // 这个是按 PS 键重连的时候才会触发
             printf("[HCI] Incoming ACL request from %s cod=0x%06x\n", bd_addr_to_str(addr), (unsigned int) cod);
             if (bt_blacklist_contains(addr)) {
                 printf("[HCI] Rejecting connection from %s (MAC is on persistent blacklist; re-pair via PS+Share)\n", bd_addr_to_str(addr));
@@ -582,7 +579,6 @@ static void __not_in_flash_func(hci_packet_handler)(uint8_t packet_type, uint16_
             }
             if ((cod & 0x000F00) == 0x000500) {
                 bd_addr_copy(current_device_addr, addr);
-                gap_inquiry_stop();
                 hci_send_cmd(&hci_accept_connection_request, addr, 0x01);
             }
             break;
@@ -711,6 +707,13 @@ static void __not_in_flash_func(l2cap_packet_handler)(uint8_t packet_type, uint1
 
                     const auto mtu = l2cap_get_remote_mtu_for_local_cid(hid_control_cid);
                     printf("[L2CAP] Remote Control MTU: %d\n",mtu);
+
+                    if (new_pair) {
+                        printf("[L2CAP] Opening interrupt channel\n");
+                        l2cap_create_channel(l2cap_packet_handler, current_device_addr, PSM_HID_INTERRUPT,
+                                                 MTU_INTERRUPT,
+                                                 &hid_interrupt_cid);
+                    }
                 } else if (psm == PSM_HID_INTERRUPT) {
                     printf("[L2CAP] HID Interrupt opened cid=0x%04X\n", local_cid);
                     hid_interrupt_cid = local_cid;
