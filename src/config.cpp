@@ -54,19 +54,19 @@ void config_valid() {
         body->haptics_gain = 1.0f;
         printf("[Config] Haptics Gain value is invalid\n");
     }
-    if (body->speaker_volume < 0 || body->speaker_volume > 127) {
+    if (body->speaker_volume > 127) {
         body->speaker_volume = 100;
         printf("[Config] Speaker Volume is invalid\n");
     }
-    if (body->headset_volume < 0 || body->headset_volume > 127) {
+    if (body->headset_volume > 127) {
         body->headset_volume = 100;
         printf("[Config] Headset Volume is invalid\n");
     }
-    if (body->speaker_gain < 0 || body->speaker_gain > 7) {
+    if (body->speaker_gain > 7) {
         body->speaker_gain = 2;
         printf("[Config] speaker_gain is invalid\n");
     }
-    if (body->inactive_time < 0 || body->inactive_time > 60) {
+    if (body->inactive_time > 60) {
         body->inactive_time = 30;
         printf("[Config] Inactive time is invalid\n");
     }
