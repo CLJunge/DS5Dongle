@@ -17,6 +17,7 @@
 #include "bsp/board_api.h"
 #include "classic/sdp_server.h"
 #include "config.h"
+#include "status_gpio.h"
 #include "dse.h"
 #include "fake_ds5.h"
 #include "wake.h"
@@ -114,6 +115,10 @@ bool bt_disconnect() {
     // 0x13 = remote user terminated connection
     hci_send_cmd(&hci_disconnect, acl_handle, 0x13);
     return true;
+}
+
+bool bt_is_connected() {
+    return hid_interrupt_cid != 0;
 }
 
 void bt_get_signal_strength(int8_t *rssi) {
@@ -608,6 +613,7 @@ static void __not_in_flash_func(hci_packet_handler)(uint8_t packet_type, uint16_
             bt_rssi = 0;
             hid_control_cid = 0;
             hid_interrupt_cid = 0;
+            gpio_on_disconnect();
             while (queue_try_remove(&send_fifo, NULL)) {
             }
             cyw43_arch_gpio_put(CYW43_WL_GPIO_LED_PIN, false);
@@ -719,6 +725,7 @@ static void __not_in_flash_func(l2cap_packet_handler)(uint8_t packet_type, uint1
                 } else if (psm == PSM_HID_INTERRUPT) {
                     printf("[L2CAP] HID Interrupt opened cid=0x%04X\n", local_cid);
                     hid_interrupt_cid = local_cid;
+                    gpio_on_connect();
                     // Successful pair removes this specific MAC from the persistent
                     // blacklist (treated as user-explicit re-pair in PS+Share mode).
                     bt_blacklist_remove(current_device_addr);

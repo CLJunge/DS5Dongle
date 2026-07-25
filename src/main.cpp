@@ -27,6 +27,7 @@
 #include "config.h"
 #include "cmd.h"
 #include "dse.h"
+#include "status_gpio.h"
 #if ENABLE_BATT_LED
 #include "battery_led.h"
 #endif
@@ -340,6 +341,7 @@ int main() {
     wake_init();
 
     config_load();
+    gpio_on_disconnect();
 
     bt_init();
     bt_register_data_callback(on_bt_data);

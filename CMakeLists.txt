@@ -118,6 +118,7 @@ add_executable(ds5-bridge
         src/button_functions.cpp
         src/dse.cpp
         src/config.cpp
+        src/status_gpio.cpp
         src/cmd.cpp
         src/ram_mem.c
         src/fake_ds5.h

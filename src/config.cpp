@@ -8,6 +8,7 @@
 #include <cstring>
 
 #include "bt.h"
+#include "status_gpio.h"
 #include "utils.h"
 #include "hardware/flash.h"
 #include "hardware/sync.h"
@@ -114,6 +115,14 @@ void config_valid() {
         body->lock_volume = 0;
         printf("[Config] lock_volume is invalid\n");
     }
+    if (!status_gpio_pin_valid(body->status_gpio_pin)) {
+        body->status_gpio_pin = STATUS_GPIO_DISABLED;
+        printf("[Config] status_gpio_pin is invalid\n");
+    }
+    if (body->status_gpio_mode > STATUS_GPIO_MODE_BUTTON) {
+        body->status_gpio_mode = 0;
+        printf("[Config] status_gpio_mode is invalid\n");
+    }
 }
 
 void config_load() {
@@ -161,9 +170,19 @@ Config_body& get_config() {
 }
 
 void set_config(const uint8_t *new_config, const uint16_t len) {
+    const bool controller_connected = bt_is_connected();
+    gpio_on_disconnect();
+
     const auto copy_len = len < sizeof(Config_body) ? len : sizeof(Config_body);
     memcpy(&config.body, new_config, copy_len);
     config_valid();
+
+    if (controller_connected && config.body.status_gpio_mode != STATUS_GPIO_MODE_BUTTON) {
+        gpio_on_connect();
+    } else {
+        gpio_on_disconnect();
+    }
+
     if (config.body.disable_pico_led) {
         cyw43_arch_gpio_put(CYW43_WL_GPIO_LED_PIN, false);
     }else {
@@ -184,6 +203,15 @@ void set_config(const uint8_t *new_config, const uint16_t len) {
 }
 
 void set_config(const Config_body &new_config) {
+    const bool controller_connected = bt_is_connected();
+    gpio_on_disconnect();
+
     config.body = new_config;
     config_valid();
+
+    if (controller_connected && config.body.status_gpio_mode != STATUS_GPIO_MODE_BUTTON) {
+        gpio_on_connect();
+    } else {
+        gpio_on_disconnect();
+    }
 }
