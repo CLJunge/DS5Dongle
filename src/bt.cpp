@@ -580,6 +580,9 @@ static void __not_in_flash_func(hci_packet_handler)(uint8_t packet_type, uint16_
             }
             if ((cod & 0x000F00) == 0x000500) {
                 bd_addr_copy(current_device_addr, addr);
+                // 这里的 stop 触发条件是：刚开机时，pico 处于 inquiry 模式，然后 DS5 通过 PS 键重连
+                // 如果在连接上以后没有停止 inquiry，会导致回报率很低
+                gap_inquiry_stop();
                 hci_send_cmd(&hci_accept_connection_request, addr, 0x01);
             }
             break;
