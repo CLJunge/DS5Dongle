@@ -18,6 +18,7 @@
 #include "classic/sdp_server.h"
 #include "config.h"
 #include "dse.h"
+#include "fake_ds5.h"
 #include "wake.h"
 #include "pico/util/queue.h"
 #if ENABLE_BATT_LED
@@ -672,6 +673,10 @@ static void __not_in_flash_func(l2cap_packet_handler)(uint8_t packet_type, uint1
                         printf("Connected DSE Controller\n");
                         is_dse = true;
                         dse_on_connect();
+
+                        if (get_config().controller_mode == 0) {
+                            feature_data[0x20].assign(report20,report20 + sizeof(report20));
+                        }
                     } else {
                         printf("Connected DS5 Controller\n");
                         is_dse = false;
