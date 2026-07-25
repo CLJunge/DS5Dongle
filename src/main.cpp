@@ -9,6 +9,7 @@
 #include "utils.h"
 #include "resample.h"
 #include "audio.h"
+#include "btstack_util.h"
 #if ENABLE_DEBUG
 #include "debug.h"
 #endif
@@ -187,10 +188,10 @@ uint16_t tud_hid_get_report_cb(uint8_t itf, uint8_t report_id, hid_report_type_t
 
     std::vector<uint8_t> feature_data = get_feature_data(report_id, reqlen);
     if (!feature_data.empty()) {
-        memcpy(buffer, feature_data.data() + 1, feature_data.size() - 1);
+        memcpy(buffer, feature_data.data(), feature_data.size());
     }
 
-    return feature_data.empty() ? 0 : feature_data.size() - 1;
+    return feature_data.empty() ? 0 : feature_data.size();
 }
 
 bool tud_audio_set_itf_cb(uint8_t rhport, tusb_control_request_t const *p_request) {
@@ -269,6 +270,9 @@ void tud_hid_set_report_cb(uint8_t itf, uint8_t report_id, hid_report_type_t rep
 
                 memcpy(outputData + 3, &state, sizeof(SetStateData));
                 bt_write(outputData, sizeof(outputData));
+#ifdef ENABLE_VERBOSE
+                printf_hexdump(outputData,sizeof(outputData));
+#endif
                 break;
             }
         }
