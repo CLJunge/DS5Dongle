@@ -307,6 +307,10 @@ int main() {
     board_init_after_tusb();
 #if ENABLE_SERIAL
     stdio_usb_init();
+    while (!stdio_usb_connected()) {
+        tud_task();
+    }
+    sleep_ms(150);
 #endif
 
     if (cyw43_arch_init()) {
