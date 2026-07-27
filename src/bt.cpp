@@ -113,6 +113,7 @@ bool bt_disconnect() {
     }
 
     // 0x13 = remote user terminated connection
+    printf("[HCI] Disconnect requested handle=0x%04X reason=0x13\n", acl_handle);
     hci_send_cmd(&hci_disconnect, acl_handle, 0x13);
     return true;
 }
@@ -894,12 +895,6 @@ void set_feature_data(uint8_t reportId, uint8_t *data, uint16_t len) {
 #endif
         dse_on_profile_write(reportId);
     }
-}
-
-void bt_power_off_controller() {
-    uint8_t bluetooth_control[47]{};
-    bluetooth_control[0] = 0x02; // DualSense Bluetooth control: 1=on, 2=off.
-    set_feature_data(0x08, bluetooth_control, sizeof(bluetooth_control));
 }
 
 void init_feature() {
